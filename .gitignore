@@ -20,3 +20,5 @@ arday-7480ba4f-main/dist/
 arday-7480ba4f-main/server/node_modules/
 arday-7480ba4f-main/server/dist/
 arday-7480ba4f-main/*.log
+arday-7480ba4f-main/.env
+arday-7480ba4f-main/server/.env
