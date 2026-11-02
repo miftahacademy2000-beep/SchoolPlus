@@ -1,0 +1,15 @@
+src/database/seed.ts(67,7): error TS2322: Type '{ email: string; fullName: string; passwordHash: string; mustChangePassword: true; preferredLanguage: string; createdAt: Date; }' is not assignable to type '(Without<ProfileCreateInput, ProfileUncheckedCreateInput> & ProfileUncheckedCreateInput) | (Without<...> & ProfileCreateInput)'.
+src/routes/archived-users.ts(81,15): error TS2322: Type '{ userId: string; schoolId: string | null; }' is not assignable to type 'StudentWhereInput'.
+src/routes/archived-users.ts(88,15): error TS2322: Type 'string | null' is not assignable to type 'string | StringFilter<"Student"> | undefined'.
+src/routes/archived-users.ts(117,15): error TS2322: Type 'string | null' is not assignable to type 'string | undefined'.
+src/routes/archived-users.ts(128,13): error TS2322: Type 'string | null' is not assignable to type 'string | undefined'.
+src/routes/archived-users.ts(130,13): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+src/routes/archived-users.ts(130,26): error TS2352: Conversion of type 'string' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/routes/archived-users.ts(131,26): error TS2352: Conversion of type 'string' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/routes/archived-users.ts(139,13): error TS2322: Type 'string | null' is not assignable to type 'string | undefined'.
+src/routes/archived-users.ts(141,26): error TS2352: Conversion of type 'string' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/routes/teacher-portal.ts(75,20): error TS2551: Property 'grades' does not exist on type '{ profile: { id: string; phone: string | null; email: string | null; createdAt: Date; updatedAt: Date; fullName: string; avatarUrl: string | null; loginId: string | null; mustChangePassword: boolean; preferredLanguage: string; passwordHash: string | null; }; } & { ...; }'. Did you mean 'grade'?
+src/routes/teacher-portal.ts(75,32): error TS7006: Parameter 'g' implicitly has an 'any' type.
+src/routes/teachers.ts(145,11): error TS2322: Type '{ id: any; fullName: any; email: any; phone: any; avatarUrl: any; }' is not assignable to type '(Without<ProfileCreateInput, ProfileUncheckedCreateInput> & ProfileUncheckedCreateInput) | (Without<...> & ProfileCreateInput)'.
+src/routes/teachers.ts(156,9): error TS2322: Type '{ userId: any; schoolId: any; employeeId: any; department: any; subjects: any; }' is not assignable to type '(Without<TeacherCreateInput, TeacherUncheckedCreateInput> & TeacherUncheckedCreateInput) | (Without<...> & TeacherCreateInput)'.
+src/routes/teachers.ts(261,11): error TS2322: Type '{ employeeId: string; department: string | null; }' is not assignable to type 'string'.

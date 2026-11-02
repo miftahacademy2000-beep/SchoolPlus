@@ -1,0 +1,1072 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DB_URL")
+}
+
+model School {
+  id                      String                    @id @default(uuid()) @db.Char(36)
+  name                    String                    @db.VarChar(18)
+  slug                    String                    @db.VarChar(14)
+  logoUrl                 String                    @map("logo_url") @db.VarChar(139)
+  address                 String?                   @db.VarChar(9)
+  phone                   String?                   @db.VarChar(14)
+  email                   String                    @db.VarChar(27)
+  website                 String?                   @db.Text
+  status                  String                    @db.VarChar(7)
+  plan                    String                    @db.VarChar(10)
+  createdBy               String?                   @map("created_by") @db.Char(36)
+  createdAt               DateTime                  @map("created_at") @db.DateTime(0)
+  updatedAt               DateTime                  @updatedAt @map("updated_at") @db.DateTime(0)
+  monthlyFee              Decimal?                  @map("monthly_fee") @db.Decimal(14, 2)
+  brand_color             String                    @db.VarChar(7)
+  department_type         String                    @db.VarChar(8)
+  is_enabled              Boolean
+  currency                String                    @db.VarChar(3)
+  stamp_url               String?                   @db.VarChar(140)
+  academic_years          academic_years[]
+  account_reconciliations account_reconciliations[]
+  account_transfers       account_transfers[]
+  archived_users          ArchivedUser[]
+  audit_logs              AuditLog[]
+  class_fees              class_fees[]
+  classes                 Class[]
+  courses                 Course[]
+  exam_types              exam_types[]
+  exams                   exams[]
+  expense_budgets         expense_budgets[]
+  expense_categories      expense_categories[]
+  expense_settings        expense_settings?
+  expenses                expenses[]
+  financial_accounts      financial_accounts[]
+  grading_scales          grading_scales[]
+  invoice_counters        InvoiceCounter?
+  invoice_job_runs        invoice_job_runs[]
+  invoice_templates       InvoiceTemplate[]
+  invoices                Invoice[]
+  invoiceRefunds          InvoiceRefund[]
+  memberships             Membership[]
+  messages                messages[]
+  monthly_closings        monthly_closings[]
+  parents                 Parent[]
+  payment_history         PaymentHistory[]
+  recurring_expenses      recurring_expenses[]
+  student_fee_overrides   StudentFeeOverride[]
+  students                Student[]
+  subjects                subjects[]
+  subscription_payments   SubscriptionPayment[]
+  teachers                Teacher[]
+  terms                   terms[]
+  user_roles              UserRole[]
+
+  @@map("schools")
+}
+
+model Profile {
+  id                 String                 @id @db.Char(36)
+  fullName           String                 @map("full_name") @db.VarChar(31)
+  email              String?                @db.VarChar(38)
+  loginId            String?                @unique(map: "profiles_login_id_key") @map("login_id") @db.VarChar(50)
+  avatarUrl          String?                @map("avatar_url") @db.VarChar(137)
+  phone              String?                @map("phone") @db.VarChar(26)
+  createdAt          DateTime               @map("created_at") @db.DateTime(0)
+  updatedAt          DateTime               @updatedAt @map("updated_at") @db.DateTime(0)
+  mustChangePassword Boolean                @map("must_change_password")
+  preferredLanguage  String                 @map("preferred_language") @db.VarChar(2)
+  passwordHash       String?                @map("password_hash") @db.VarChar(255)
+  preferences        String?                @db.LongText
+  submissionsGraded  AssignmentSubmission[] @relation("SubmissionGradedBy")
+  attendanceMarked   Attendance[]           @relation("AttendanceMarkedBy")
+  gradesGraded       Grade[]                @relation("GradeGradedBy")
+  messages           messages[]
+  parents            Parent[]
+  invoiceRefunds     InvoiceRefund[]       @relation("RefundRecordedBy")
+  cancelledInvoices  Invoice[]             @relation("InvoiceCancelledBy")
+  paymentHistory     PaymentHistory[]       @relation("PaymentRecordedBy")
+  students           Student[]
+  teachers           Teacher[]
+
+  @@map("profiles")
+}
+
+model UserRole {
+  id        String   @id @default(uuid()) @db.Char(36)
+  userId    String   @map("user_id") @db.Char(36)
+  role      String   @db.VarChar(12)
+  schoolId  String?  @map("school_id") @db.Char(36)
+  createdAt DateTime @map("created_at") @db.DateTime(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.DateTime(0)
+  schools   School?  @relation(fields: [schoolId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_user_roles_school_id")
+
+  @@index([schoolId], map: "idx_user_roles_school_id")
+  @@map("user_roles")
+}
+
+model Membership {
+  id        String   @id @default(uuid()) @db.Char(36)
+  userId    String   @map("user_id") @db.Char(36)
+  schoolId  String   @map("school_id") @db.Char(36)
+  isActive  Boolean  @map("is_active")
+  createdAt DateTime @map("created_at") @db.DateTime(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.DateTime(0)
+  schools   School   @relation(fields: [schoolId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_memberships_school_id")
+
+  @@index([schoolId], map: "idx_memberships_school_id")
+  @@map("memberships")
+}
+
+model Teacher {
+  id                  String             @id @default(uuid()) @db.Char(36)
+  userId              String             @map("user_id") @db.Char(36)
+  schoolId            String             @map("school_id") @db.Char(36)
+  employeeId          String             @map("employee_id") @db.Char(36)
+  department          String?            @db.VarChar(7)
+  subjects            String?            @db.LongText
+  createdAt           DateTime           @map("created_at") @db.DateTime(0)
+  updatedAt           DateTime           @updatedAt @map("updated_at") @db.DateTime(0)
+  archived_at         DateTime?          @db.DateTime(0)
+  archived_by         String?            @db.Char(36)
+  archive_reason      String?            @db.Text
+  original_identifier Int?
+  shift               String             @db.VarChar(8)
+  salary              Int?
+  status              String             @db.VarChar(6)
+  academic_year_id    String?            @db.Char(36)
+  assignments         Assignment[]
+  classTeachers       ClassTeacher[]
+  classes             Class[]
+  courses             Course[]
+  learningMaterials   LearningMaterial[]
+  schools             School             @relation(fields: [schoolId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_teachers_school_id")
+  profile             Profile            @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_teachers_user_id")
+  timetableSlots      TimetableSlot[]
+
+  @@index([schoolId], map: "idx_teachers_school_id")
+  @@index([userId], map: "idx_teachers_user_id")
+  @@map("teachers")
+}
+
+model Student {
+  id                  String                 @id @default(uuid()) @db.Char(36)
+  userId              String                 @map("user_id") @db.Char(36)
+  schoolId            String                 @map("school_id") @db.Char(36)
+  enrollmentNumber    String                 @map("enrollment_number") @db.VarChar(17)
+  dateOfBirth         DateTime?              @map("date_of_birth") @db.Date
+  grade               String?                @db.VarChar(13)
+  parentId            String?                @map("parent_id") @db.Char(36)
+  createdAt           DateTime               @map("created_at") @db.DateTime(0)
+  updatedAt           DateTime               @updatedAt @map("updated_at") @db.DateTime(0)
+  archived_at         DateTime?              @db.DateTime(0)
+  archived_by         String?                @db.Char(36)
+  archive_reason      String?                @db.Text
+  original_identifier String?                @db.VarChar(10)
+  gender              String?                @db.VarChar(6)
+  start_date          DateTime?              @db.Date
+  section             String?                @db.VarChar(1)
+  academic_year_id    String?                @db.Char(36)
+  region              String?                @db.VarChar(15)
+  city                String?                @db.VarChar(8)
+  district            String?                @db.VarChar(8)
+  address             String?                @db.VarChar(10)
+  parent_name         String?                @db.VarChar(7)
+  parent_phone        String?                @db.VarChar(16)
+  parent_relationship String?                @db.VarChar(6)
+  emergency_contact   BigInt?
+  country             String?                @db.VarChar(10)
+  assignments         AssignmentSubmission[]
+  attendance          Attendance[]
+  classStudents       ClassStudent[]
+  exam_unlocks        exam_unlocks[]
+  exams               exams[]
+  grades              Grade[]
+  invoices            Invoice[]
+  parentStudents      ParentStudent[]
+  studentFeeOverrides StudentFeeOverride[]
+  schools             School                 @relation(fields: [schoolId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_students_school_id")
+  profile             Profile                @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_students_user_id")
+
+  @@index([schoolId], map: "idx_students_school_id")
+  @@index([userId], map: "idx_students_user_id")
+  @@map("students")
+}
+
+model Parent {
+  id             String   @id @default(uuid()) @db.Char(36)
+  userId         String   @map("user_id") @db.Char(36)
+  schoolId       String   @map("school_id") @db.Char(36)
+  phone          BigInt
+  address        String?  @db.Text
+  occupation     String?  @db.Text
+  createdAt      DateTime @map("created_at") @db.DateTime(0)
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.DateTime(0)
+  archived_at    String?  @db.Text
+  archived_by    String?  @db.Char(36)
+  archive_reason String?  @db.Text
+  schools        School   @relation(fields: [schoolId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_parents_school_id")
+  profile        Profile  @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_parents_user_id")
+
+  @@index([schoolId], map: "idx_parents_school_id")
+  @@index([userId], map: "idx_parents_user_id")
+  @@map("parents")
+}
+
+model Class {
+  id              String           @id @default(uuid()) @db.Char(36)
+  name            String           @db.VarChar(32)
+  grade           String?          @db.VarChar(2)
+  section         String?          @db.VarChar(2)
+  schoolId        String           @map("school_id") @db.Char(36)
+  teacherId       String?          @map("teacher_id") @db.Char(36)
+  capacity        Int
+  createdAt       DateTime         @map("created_at") @db.DateTime(0)
+  updatedAt       DateTime         @updatedAt @map("updated_at") @db.DateTime(0)
+  education_level String?          @db.Text
+  program         String?          @db.VarChar(6)
+  level_label     String?          @db.VarChar(8)
+  assignments     Assignment[]
+  attendance      Attendance[]
+  class_fees      class_fees[]
+  classStudents   ClassStudent[]
+  class_subjects  class_subjects[]
+  classTeachers   ClassTeacher[]
+  schools         School           @relation(fields: [schoolId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_classes_school_id")
+  teacher         Teacher?         @relation(fields: [teacherId], references: [id], onUpdate: Restrict, map: "fk_classes_teacher_id")
+  exams           exams[]
+  timetableSlots  TimetableSlot[]
+
+  @@index([schoolId], map: "idx_classes_school_id")
+  @@index([teacherId], map: "idx_classes_teacher_id")
+  @@map("classes")
+}
+
+model Course {
+  id                String             @id @default(uuid()) @db.Char(36)
+  name              String             @db.VarChar(9)
+  code              String             @db.VarChar(9)
+  description       String?            @db.VarChar(14)
+  schoolId          String             @map("school_id") @db.Char(36)
+  teacherId         String?            @map("teacher_id") @db.Char(36)
+  credits           Int
+  createdAt         DateTime           @map("created_at") @db.DateTime(0)
+  updatedAt         DateTime           @updatedAt @map("updated_at") @db.DateTime(0)
+  assignments       Assignment[]
+  schools           School             @relation(fields: [schoolId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_courses_school_id")
+  teacher           Teacher?           @relation(fields: [teacherId], references: [id], onUpdate: Restrict, map: "fk_courses_teacher_id")
+  grades            Grade[]
+  learningMaterials LearningMaterial[]
+  timetableSlots    TimetableSlot[]
+
+  @@index([schoolId], map: "idx_courses_school_id")
+  @@index([teacherId], map: "idx_courses_teacher_id")
+  @@map("courses")
+}
+
+model ClassStudent {
+  id         String   @id @default(uuid()) @db.Char(36)
+  classId    String   @map("class_id") @db.Char(36)
+  studentId  String   @map("student_id") @db.Char(36)
+  enrolledAt DateTime @map("enrolled_at") @db.DateTime(0)
+  class      Class    @relation(fields: [classId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_class_students_class_id")
+  student    Student  @relation(fields: [studentId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_class_students_student_id")
+
+  @@index([classId], map: "idx_class_students_class_id")
+  @@index([studentId], map: "idx_class_students_student_id")
+  @@map("class_students")
+}
+
+model ClassTeacher {
+  id         String    @id @default(uuid()) @db.Char(36)
+  classId    String    @map("class_id") @db.Char(36)
+  teacherId  String    @map("teacher_id") @db.Char(36)
+  role       String?   @db.VarChar(50)
+  assignedAt DateTime? @map("assigned_at") @db.DateTime(0)
+  class      Class     @relation(fields: [classId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_class_teachers_class")
+  teacher    Teacher   @relation(fields: [teacherId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_class_teachers_teacher")
+
+  @@unique([classId, teacherId], map: "class_teacher_uniq")
+  @@index([teacherId], map: "fk_class_teachers_teacher")
+  @@map("class_teachers")
+}
+
+model ParentStudent {
+  id           String   @id @default(uuid()) @db.Char(36)
+  parentId     String   @map("parent_id") @db.Char(36)
+  studentId    String   @map("student_id") @db.Char(36)
+  relationship String   @db.VarChar(6)
+  createdAt    DateTime @map("created_at") @db.DateTime(0)
+  student      Student  @relation(fields: [studentId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_parent_students_student_id")
+
+  @@index([studentId], map: "idx_parent_students_student_id")
+  @@map("parent_students")
+}
+
+model Attendance {
+  id        String   @id @default(uuid()) @db.Char(36)
+  studentId String   @map("student_id") @db.Char(36)
+  classId   String   @map("class_id") @db.Char(36)
+  date      DateTime @db.Date
+  status    String   @db.VarChar(7)
+  notes     String?  @db.VarChar(60)
+  markedBy  String?  @map("marked_by") @db.Char(36)
+  createdAt DateTime @map("created_at") @db.DateTime(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.DateTime(0)
+  class     Class    @relation(fields: [classId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_attendance_class_id")
+  marker    Profile? @relation("AttendanceMarkedBy", fields: [markedBy], references: [id], onUpdate: Restrict, map: "fk_attendance_marked_by")
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_attendance_student_id")
+
+  @@index([classId], map: "idx_attendance_class_id")
+  @@index([markedBy], map: "idx_attendance_marked_by")
+  @@index([studentId], map: "idx_attendance_student_id")
+  @@map("attendance")
+}
+
+model Grade {
+  id        String   @id @default(uuid()) @db.Char(36)
+  studentId String   @map("student_id") @db.Char(36)
+  courseId  String   @map("course_id") @db.Char(36)
+  gradeType String   @map("grade_type") @db.VarChar(10)
+  title     String   @db.VarChar(7)
+  score     Int
+  maxScore  Int      @map("max_score")
+  weight    Int
+  gradedBy  String?  @map("graded_by") @db.Char(36)
+  gradedAt  DateTime @map("graded_at") @db.DateTime(0)
+  notes     String?  @db.VarChar(21)
+  createdAt DateTime @map("created_at") @db.DateTime(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.DateTime(0)
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_grades_course_id")
+  grader    Profile? @relation("GradeGradedBy", fields: [gradedBy], references: [id], onUpdate: Restrict, map: "fk_grades_graded_by")
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_grades_student_id")
+
+  @@index([courseId], map: "idx_grades_course_id")
+  @@index([gradedBy], map: "idx_grades_graded_by")
+  @@index([studentId], map: "idx_grades_student_id")
+  @@map("grades")
+}
+
+model TimetableSlot {
+  id        String    @id @default(uuid()) @db.Char(36)
+  classId   String    @map("class_id") @db.Char(36)
+  courseId  String?   @map("course_id") @db.Char(36)
+  teacherId String?   @map("teacher_id") @db.Char(36)
+  dayOfWeek Int?      @map("day_of_week")
+  startTime DateTime? @map("start_time") @db.Time(0)
+  endTime   DateTime? @map("end_time") @db.Time(0)
+  room      String?   @db.VarChar(100)
+  createdAt DateTime? @map("created_at") @db.DateTime(0)
+  updatedAt DateTime? @updatedAt @map("updated_at") @db.DateTime(0)
+  class     Class     @relation(fields: [classId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_timetable_class")
+  course    Course?   @relation(fields: [courseId], references: [id], onUpdate: Restrict, map: "fk_timetable_course")
+  teacher   Teacher?  @relation(fields: [teacherId], references: [id], onUpdate: Restrict, map: "fk_timetable_teacher")
+
+  @@index([courseId], map: "fk_timetable_course")
+  @@index([teacherId], map: "fk_timetable_teacher")
+  @@index([classId], map: "timetable_class_idx")
+  @@index([dayOfWeek], map: "timetable_day_idx")
+  @@map("timetable_slots")
+}
+
+model Invoice {
+  id             String           @id @default(uuid()) @db.Char(36)
+  studentId      String           @map("student_id") @db.Char(36)
+  schoolId       String           @map("school_id") @db.Char(36)
+  invoiceNumber  String           @map("invoice_number") @db.VarChar(15)
+  title          String           @db.VarChar(25)
+  description    String?          @db.VarChar(63)
+  amount         Decimal          @db.Decimal(14, 2)
+  dueDate        DateTime         @map("due_date") @db.Date
+  paidDate       DateTime?        @map("paid_date") @db.Date
+  status         String           @db.VarChar(14)
+  paymentMethod  String?          @map("payment_method") @db.VarChar(12)
+  createdAt      DateTime         @map("created_at") @db.DateTime(0)
+  updatedAt      DateTime         @updatedAt @map("updated_at") @db.DateTime(0)
+  amountPaid     Decimal          @map("amount_paid") @db.Decimal(14, 2)
+  amountWaived   Decimal          @default(0.00) @map("amount_waived") @db.Decimal(14, 2)
+  cancellationType   String?      @map("cancellation_type") @db.VarChar(30)
+  cancellationReason String?      @map("cancellation_reason") @db.Text
+  cancellationNote   String?       @map("cancellation_note") @db.Text
+  cancelledAt        DateTime?     @map("cancelled_at") @db.DateTime(0)
+  cancelledBy        String?       @map("cancelled_by") @db.Char(36)
+  relatedInvoiceId   String?       @map("related_invoice_id") @db.Char(36)
+  currency       String           @db.VarChar(3)
+  billing_period String?          @db.VarChar(7)
+  schools        School           @relation(fields: [schoolId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_invoices_school_id")
+  student        Student          @relation(fields: [studentId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_invoices_student_id")
+  cancellationAuthor Profile?    @relation("InvoiceCancelledBy", fields: [cancelledBy], references: [id], onDelete: SetNull, onUpdate: Restrict, map: "fk_invoices_cancelled_by")
+  relatedInvoice Invoice?         @relation("InvoiceDuplicateReference", fields: [relatedInvoiceId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_invoices_related_invoice_id")
+  duplicateInvoices Invoice[]     @relation("InvoiceDuplicateReference")
+  paymentHistory PaymentHistory[]
+  refunds        InvoiceRefund[]
+
+  @@index([schoolId], map: "idx_invoices_school_id")
+  @@index([studentId], map: "idx_invoices_student_id")
+  @@index([cancelledBy], map: "idx_invoices_cancelled_by")
+  @@index([relatedInvoiceId], map: "idx_invoices_related_invoice_id")
+  @@map("invoices")
+}
+
+model Assignment {
+  id             String                 @id @default(uuid()) @db.Char(36)
+  title          String                 @db.VarChar(4)
+  description    String                 @db.VarChar(7)
+  courseId       String                 @map("course_id") @db.Char(36)
+  classId        String?                @map("class_id") @db.Char(36)
+  teacherId      String?                @map("teacher_id") @db.Char(36)
+  dueDate        DateTime               @map("due_date") @db.DateTime(0)
+  maxScore       Int                    @map("max_score")
+  assignmentType String                 @map("assignment_type") @db.VarChar(8)
+  status         String                 @db.VarChar(9)
+  attachments    String?                @db.Text
+  createdAt      DateTime               @map("created_at") @db.DateTime(0)
+  updatedAt      DateTime               @updatedAt @map("updated_at") @db.DateTime(0)
+  submissions    AssignmentSubmission[]
+  class          Class?                 @relation(fields: [classId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_assignments_class_id")
+  course         Course                 @relation(fields: [courseId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_assignments_course_id")
+  teacher        Teacher?               @relation(fields: [teacherId], references: [id], onUpdate: Restrict, map: "fk_assignments_teacher_id")
+
+  @@index([classId], map: "idx_assignments_class_id")
+  @@index([courseId], map: "idx_assignments_course_id")
+  @@index([teacherId], map: "idx_assignments_teacher_id")
+  @@map("assignments")
+}
+
+model AssignmentSubmission {
+  id             String     @id @default(uuid()) @db.Char(36)
+  assignmentId   String     @map("assignment_id") @db.Char(36)
+  studentId      String     @map("student_id") @db.Char(36)
+  submissionText String?    @map("submission_text") @db.Text
+  attachments    String?    @db.LongText
+  score          Decimal?   @db.Decimal(10, 2)
+  feedback       String?    @db.Text
+  submittedAt    DateTime?  @map("submitted_at") @db.DateTime(0)
+  gradedAt       DateTime?  @map("graded_at") @db.DateTime(0)
+  gradedBy       String?    @map("graded_by") @db.Char(36)
+  status         String     @default("pending") @db.VarChar(20)
+  createdAt      DateTime?  @map("created_at") @db.DateTime(0)
+  updatedAt      DateTime?  @updatedAt @map("updated_at") @db.DateTime(0)
+  assignment     Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_assignment_submissions_assign")
+  grader         Profile?   @relation("SubmissionGradedBy", fields: [gradedBy], references: [id], onUpdate: Restrict, map: "fk_assignment_submissions_gradedby")
+  student        Student    @relation(fields: [studentId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_assignment_submissions_student")
+
+  @@unique([assignmentId, studentId], map: "assignment_student_uniq")
+  @@index([gradedBy], map: "fk_assignment_submissions_gradedby")
+  @@index([studentId], map: "fk_assignment_submissions_student")
+  @@map("assignment_submissions")
+}
+
+model LearningMaterial {
+  id          String   @id @default(uuid()) @db.Char(36)
+  courseId    String   @map("course_id") @db.Char(36)
+  teacherId   String   @map("teacher_id") @db.Char(36)
+  title       String   @db.VarChar(31)
+  description String   @db.VarChar(0)
+  fileUrl     String   @map("file_url") @db.VarChar(172)
+  fileName    String   @map("file_name") @db.Char(36)
+  fileType    String   @map("file_type") @db.VarChar(71)
+  fileSize    Int      @map("file_size")
+  createdAt   DateTime @map("created_at") @db.DateTime(0)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.DateTime(0)
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_learning_materials_course_id")
+  teacher     Teacher  @relation(fields: [teacherId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_learning_materials_teacher_id")
+
+  @@index([courseId], map: "idx_learning_materials_course_id")
+  @@index([teacherId], map: "idx_learning_materials_teacher_id")
+  @@map("learning_materials")
+}
+
+model InvoiceTemplate {
+  id        String   @id @default(uuid()) @db.Char(36)
+  schoolId  String   @map("school_id") @db.Char(36)
+  name      String   @db.VarChar(12)
+  isDefault Boolean  @map("is_default")
+  layout    String   @db.LongText
+  createdAt DateTime @map("created_at") @db.DateTime(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.DateTime(0)
+  schools   School   @relation(fields: [schoolId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_invoice_templates_school_id")
+
+  @@index([schoolId], map: "idx_invoice_templates_school_id")
+  @@map("invoice_templates")
+}
+
+model SchoolInquiry {
+  id          String    @id @default(uuid()) @db.Char(36)
+  schoolName  String    @map("school_name") @db.VarChar(18)
+  contactName String    @map("contact_name") @db.VarChar(10)
+  email       String    @db.VarChar(20)
+  phone       BigInt?
+  address     String?   @db.VarChar(19)
+  message     String?   @db.VarChar(64)
+  status      String    @db.VarChar(8)
+  reviewedBy  String?   @map("reviewed_by") @db.Char(36)
+  reviewedAt  DateTime? @map("reviewed_at") @db.DateTime(0)
+  adminNotes  String?   @map("admin_notes") @db.VarChar(5)
+  createdAt   DateTime  @map("created_at") @db.DateTime(0)
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.DateTime(0)
+
+  @@map("school_inquiries")
+}
+
+model SubscriptionPayment {
+  id                 String    @id @default(uuid()) @db.Char(36)
+  schoolId           String    @map("school_id") @db.Char(36)
+  invoiceNumber      String    @map("invoice_number") @db.VarChar(20)
+  plan               String    @db.VarChar(3)
+  amount             Int
+  billingPeriodStart DateTime  @map("billing_period_start") @db.Date
+  billingPeriodEnd   DateTime  @map("billing_period_end") @db.Date
+  status             String    @db.VarChar(4)
+  paidDate           DateTime? @map("paid_date") @db.DateTime(0)
+  paymentMethod      String?   @map("payment_method") @db.Text
+  notes              String    @db.VarChar(10)
+  createdBy          String?   @map("created_by") @db.Char(36)
+  createdAt          DateTime  @map("created_at") @db.DateTime(0)
+  updatedAt          DateTime  @updatedAt @map("updated_at") @db.DateTime(0)
+  schools            School    @relation(fields: [schoolId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_subscription_payments_school_id")
+
+  @@index([schoolId], map: "idx_subscription_payments_school_id")
+  @@map("subscription_payments")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid()) @db.Char(36)
+  userId     String?  @map("user_id") @db.Char(36)
+  userEmail  String?  @map("user_email") @db.VarChar(29)
+  userName   String?  @map("user_name") @db.VarChar(26)
+  action     String   @db.VarChar(26)
+  entityType String   @map("entity_type") @db.VarChar(16)
+  entityId   String?  @map("entity_id") @db.Char(36)
+  entityName String?  @map("entity_name") @db.VarChar(51)
+  schoolId   String?  @map("school_id") @db.Char(36)
+  details    String   @db.LongText
+  ipAddress  String?  @map("ip_address") @db.Text
+  userAgent  String?  @map("user_agent") @db.Text
+  createdAt  DateTime @map("created_at") @db.DateTime(0)
+  schools    School?  @relation(fields: [schoolId], references: [id], onUpdate: Restrict, map: "fk_audit_logs_school_id")
+
+  @@index([schoolId], map: "idx_audit_logs_school_id")
+  @@map("audit_logs")
+}
+
+model ArchivedUser {
+  id         String   @id @default(uuid()) @db.Char(36)
+  originalId String   @map("original_id") @db.Char(36)
+  userId     String?  @map("user_id") @db.Char(36)
+  schoolId   String?  @map("school_id") @db.Char(36)
+  userType   String   @map("user_type") @db.VarChar(7)
+  fullName   String   @map("full_name") @db.VarChar(31)
+  email      String?  @db.VarChar(38)
+  phone      String?  @db.VarChar(26)
+  avatarUrl  String?  @map("avatar_url") @db.Text
+  metadata   String   @db.LongText
+  archivedBy String   @map("archived_by") @db.Char(36)
+  archivedAt DateTime @map("archived_at") @db.DateTime(0)
+  reason     String?  @db.Text
+  schools    School?  @relation(fields: [schoolId], references: [id], onUpdate: Restrict, map: "fk_archived_users_school_id")
+
+  @@index([schoolId], map: "idx_archived_users_school_id")
+  @@map("archived_users")
+}
+
+model PlatformSetting {
+  id          String   @id @default(uuid()) @db.Char(36)
+  key         String   @db.VarChar(15)
+  value       String   @db.LongText
+  description String?  @db.VarChar(43)
+  updatedBy   String?  @map("updated_by") @db.Char(36)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.DateTime(0)
+  createdAt   DateTime @map("created_at") @db.DateTime(0)
+
+  @@map("platform_settings")
+}
+
+model InvoiceCounter {
+  schoolId     String @id @map("school_id") @db.Char(36)
+  nextNumber   Int    @map("next_number")
+  currentYear  Int    @map("current_year")
+  currentMonth Int    @map("current_month")
+  schools      School @relation(fields: [schoolId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_invoice_counters_school_id")
+
+  @@index([schoolId], map: "idx_invoice_counters_school_id")
+  @@map("invoice_counters")
+}
+
+model PaymentHistory {
+  id                 String              @id @default(uuid()) @db.Char(36)
+  invoiceId          String              @map("invoice_id") @db.Char(36)
+  amount             Decimal             @db.Decimal(14, 2)
+  paymentMethod      String?             @map("payment_method") @db.VarChar(12)
+  notes              String?             @db.VarChar(25)
+  recordedBy         String?             @map("recorded_by") @db.Char(36)
+  createdAt          DateTime            @map("created_at") @db.DateTime(0)
+  school_id          String              @db.Char(36)
+  account_id         String?             @db.Char(36)
+  reconciled         Boolean
+  reconciled_at      String?             @db.Text
+  financial_accounts financial_accounts? @relation(fields: [account_id], references: [id], onUpdate: Restrict, map: "fk_payment_history_account_id")
+  invoice            Invoice             @relation(fields: [invoiceId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_payment_history_invoice_id")
+  recorder           Profile?            @relation("PaymentRecordedBy", fields: [recordedBy], references: [id], onUpdate: Restrict, map: "fk_payment_history_recorded_by")
+  schools            School              @relation(fields: [school_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_payment_history_school_id")
+  refunds            InvoiceRefund[]
+
+  @@index([account_id], map: "idx_payment_history_account_id")
+  @@index([invoiceId], map: "idx_payment_history_invoice_id")
+  @@index([recordedBy], map: "idx_payment_history_recorded_by")
+  @@index([school_id], map: "idx_payment_history_school_id")
+  @@map("payment_history")
+}
+
+model InvoiceRefund {
+  id               String         @id @default(uuid()) @db.Char(36)
+  invoiceId        String         @map("invoice_id") @db.Char(36)
+  paymentHistoryId String         @map("payment_history_id") @db.Char(36)
+  amount           Decimal        @db.Decimal(14, 2)
+  refundDate       DateTime       @map("refund_date") @db.Date
+  reason           String         @db.Text
+  note             String?        @db.Text
+  status           String         @default("processed") @db.VarChar(20)
+  recordedBy       String?        @map("recorded_by") @db.Char(36)
+  schoolId         String         @map("school_id") @db.Char(36)
+  createdAt        DateTime       @map("created_at") @db.DateTime(0)
+  invoice          Invoice        @relation(fields: [invoiceId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_invoice_refunds_invoice_id")
+  payment          PaymentHistory @relation(fields: [paymentHistoryId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_invoice_refunds_payment_history_id")
+  recorder         Profile?       @relation("RefundRecordedBy", fields: [recordedBy], references: [id], onDelete: SetNull, onUpdate: Restrict, map: "fk_invoice_refunds_recorded_by")
+  school           School         @relation(fields: [schoolId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_invoice_refunds_school_id")
+
+  @@index([invoiceId], map: "idx_invoice_refunds_invoice_id")
+  @@index([paymentHistoryId], map: "idx_invoice_refunds_payment_history_id")
+  @@index([recordedBy], map: "idx_invoice_refunds_recorded_by")
+  @@index([schoolId], map: "idx_invoice_refunds_school_id")
+  @@map("invoice_refunds")
+}
+
+model StudentFeeOverride {
+  id         String   @id @default(uuid()) @db.Char(36)
+  studentId  String   @map("student_id") @db.Char(36)
+  schoolId   String   @map("school_id") @db.Char(36)
+  monthlyFee Int      @map("monthly_fee")
+  reason     String?  @db.VarChar(39)
+  createdAt  DateTime @map("created_at") @db.DateTime(0)
+  updatedAt  DateTime @updatedAt @map("updated_at") @db.DateTime(0)
+  currency   String   @db.VarChar(3)
+  schools    School   @relation(fields: [schoolId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_student_fee_overrides_school_id")
+  student    Student  @relation(fields: [studentId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_student_fee_overrides_student_id")
+
+  @@index([schoolId], map: "idx_student_fee_overrides_school_id")
+  @@index([studentId], map: "idx_student_fee_overrides_student_id")
+  @@map("student_fee_overrides")
+}
+
+model academic_years {
+  id         String   @id @db.Char(36)
+  school_id  String   @db.Char(36)
+  name       String   @db.VarChar(14)
+  start_date DateTime @db.Date
+  end_date   DateTime @db.Date
+  is_active  Boolean
+  created_at DateTime @db.DateTime(0)
+  updated_at DateTime @db.DateTime(0)
+  schools    School   @relation(fields: [school_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_academic_years_school_id")
+  terms      terms[]
+
+  @@index([school_id], map: "idx_academic_years_school_id")
+}
+
+model account_reconciliations {
+  id                 String              @id @db.Char(36)
+  school_id          String              @db.Char(36)
+  account_id         String?             @db.Char(36)
+  period             String?             @db.Char(7)
+  statement_balance  Decimal?            @db.Decimal(14, 2)
+  system_balance     Decimal?            @db.Decimal(14, 2)
+  difference         Decimal?            @db.Decimal(14, 2)
+  notes              String?             @db.Text
+  reconciled_by      String?             @db.Char(36)
+  reconciled_at      DateTime?           @db.DateTime(0)
+  created_at         DateTime?           @db.DateTime(0)
+  updated_at         DateTime?           @db.DateTime(0)
+  financial_accounts financial_accounts? @relation(fields: [account_id], references: [id], onUpdate: Restrict, map: "fk_recon_account")
+  schools            School              @relation(fields: [school_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_recon_school")
+
+  @@index([account_id], map: "recon_account_idx")
+  @@index([school_id], map: "recon_school_idx")
+}
+
+model account_transfers {
+  id                                                                       String              @id @db.Char(36)
+  school_id                                                                String              @db.Char(36)
+  from_account_id                                                          String?             @db.Char(36)
+  to_account_id                                                            String?             @db.Char(36)
+  transfer_date                                                            DateTime            @db.Date
+  amount                                                                   Int
+  currency                                                                 String              @db.VarChar(3)
+  reference                                                                BigInt
+  notes                                                                    String              @db.VarChar(12)
+  reconciled                                                               Boolean
+  reconciled_at                                                            String?             @db.Text
+  created_by                                                               String              @db.Char(36)
+  created_by_name                                                          String              @db.VarChar(14)
+  created_at                                                               DateTime            @db.DateTime(0)
+  updated_at                                                               DateTime            @db.DateTime(0)
+  financial_accounts_account_transfers_from_account_idTofinancial_accounts financial_accounts? @relation("account_transfers_from_account_idTofinancial_accounts", fields: [from_account_id], references: [id], onUpdate: Restrict, map: "fk_account_transfers_from_account_id")
+  schools                                                                  School              @relation(fields: [school_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_account_transfers_school_id")
+  financial_accounts_account_transfers_to_account_idTofinancial_accounts   financial_accounts? @relation("account_transfers_to_account_idTofinancial_accounts", fields: [to_account_id], references: [id], onUpdate: Restrict, map: "fk_account_transfers_to_account_id")
+
+  @@index([from_account_id], map: "idx_account_transfers_from_account_id")
+  @@index([school_id], map: "idx_account_transfers_school_id")
+  @@index([to_account_id], map: "idx_account_transfers_to_account_id")
+}
+
+model class_fees {
+  class_id    String   @db.Char(36)
+  school_id   String   @db.Char(36)
+  monthly_fee Decimal  @db.Decimal(14, 2)
+  created_at  DateTime @db.DateTime(0)
+  updated_at  DateTime @db.DateTime(0)
+  currency    String   @db.VarChar(3)
+  classes     Class    @relation(fields: [class_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_class_fees_class_id")
+  schools     School   @relation(fields: [school_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_class_fees_school_id")
+
+  @@id([class_id, school_id])
+  @@index([class_id], map: "idx_class_fees_class_id")
+  @@index([school_id], map: "idx_class_fees_school_id")
+}
+
+model class_subjects {
+  id         String    @id @db.Char(36)
+  class_id   String    @db.Char(36)
+  subject_id String    @db.Char(36)
+  created_at DateTime? @db.DateTime(0)
+  classes    Class     @relation(fields: [class_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_class_subjects_class")
+  subjects   subjects  @relation(fields: [subject_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_class_subjects_subject")
+
+  @@unique([class_id, subject_id], map: "class_subject_uniq")
+  @@index([subject_id], map: "fk_class_subjects_subject")
+}
+
+model exam_policies {
+  school_id             String   @id @db.Char(36)
+  edit_window_days      Int
+  allow_admin_override  Boolean
+  require_unlock_reason Boolean
+  created_at            DateTime @db.DateTime(0)
+  updated_at            DateTime @db.DateTime(0)
+}
+
+model exam_types {
+  id             String   @id @db.Char(36)
+  school_id      String   @db.Char(36)
+  name           String   @db.VarChar(12)
+  default_weight Int
+  sort_order     Int
+  is_active      Boolean
+  created_at     DateTime @db.DateTime(0)
+  updated_at     DateTime @db.DateTime(0)
+  schools        School   @relation(fields: [school_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_exam_types_school_id")
+  exams          exams[]
+
+  @@index([school_id], map: "idx_exam_types_school_id")
+}
+
+model exam_unlocks {
+  id           String    @id @db.Char(36)
+  exam_id      String    @db.Char(36)
+  student_id   String    @db.Char(36)
+  requested_by String?   @db.Char(36)
+  approved_by  String?   @db.Char(36)
+  reason       String?   @db.Text
+  status       String    @default("pending") @db.VarChar(20)
+  created_at   DateTime? @db.DateTime(0)
+  updated_at   DateTime? @db.DateTime(0)
+  exams        exams     @relation(fields: [exam_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_exam_unlocks_exam")
+  students     Student   @relation(fields: [student_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_exam_unlocks_student")
+
+  @@index([exam_id], map: "exam_unlocks_exam_idx")
+  @@index([student_id], map: "exam_unlocks_student_idx")
+}
+
+model exams {
+  id           String         @id @db.Char(36)
+  school_id    String         @db.Char(36)
+  student_id   String         @db.Char(36)
+  class_id     String         @db.Char(36)
+  subject_id   String?        @db.Char(36)
+  term_id      String?        @db.Char(36)
+  exam_type_id String?        @db.Char(36)
+  score        Int
+  max_score    Int
+  weight       Int
+  remarks      String?        @db.Text
+  teacher_id   String?        @db.Char(36)
+  created_by   String?        @db.Char(36)
+  created_at   DateTime       @db.DateTime(0)
+  updated_at   DateTime       @db.DateTime(0)
+  exam_unlocks exam_unlocks[]
+  classes      Class          @relation(fields: [class_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_exams_class_id")
+  exam_types   exam_types?    @relation(fields: [exam_type_id], references: [id], onUpdate: Restrict, map: "fk_exams_exam_type_id")
+  schools      School         @relation(fields: [school_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_exams_school_id")
+  students     Student        @relation(fields: [student_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_exams_student_id")
+  subjects     subjects?      @relation(fields: [subject_id], references: [id], onUpdate: Restrict, map: "fk_exams_subject_id")
+  terms        terms?         @relation(fields: [term_id], references: [id], onUpdate: Restrict, map: "fk_exams_term_id")
+
+  @@index([class_id], map: "idx_exams_class_id")
+  @@index([exam_type_id], map: "idx_exams_exam_type_id")
+  @@index([school_id], map: "idx_exams_school_id")
+  @@index([student_id], map: "idx_exams_student_id")
+  @@index([subject_id], map: "idx_exams_subject_id")
+  @@index([term_id], map: "idx_exams_term_id")
+}
+
+model expense_budgets {
+  id                 String             @id @db.Char(36)
+  school_id          String             @db.Char(36)
+  category_id        String             @db.Char(36)
+  month              String             @db.VarChar(7)
+  amount             Int
+  created_at         DateTime           @db.DateTime(0)
+  updated_at         DateTime           @db.DateTime(0)
+  expense_categories expense_categories @relation(fields: [category_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_expense_budgets_category_id")
+  schools            School             @relation(fields: [school_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_expense_budgets_school_id")
+
+  @@index([category_id], map: "idx_expense_budgets_category_id")
+  @@index([school_id], map: "idx_expense_budgets_school_id")
+}
+
+model expense_categories {
+  id                 String               @id @db.Char(36)
+  school_id          String               @db.Char(36)
+  name               String               @db.VarChar(21)
+  description        String?              @db.Text
+  is_default         Boolean
+  is_active          Boolean
+  sort_order         Int
+  created_at         DateTime             @db.DateTime(0)
+  updated_at         DateTime             @db.DateTime(0)
+  expense_budgets    expense_budgets[]
+  schools            School               @relation(fields: [school_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_expense_categories_school_id")
+  expenses           expenses[]
+  recurring_expenses recurring_expenses[]
+
+  @@index([school_id], map: "idx_expense_categories_school_id")
+}
+
+model expense_settings {
+  school_id               String   @id @db.Char(36)
+  require_approval        Boolean
+  large_expense_threshold Int
+  created_at              DateTime @db.DateTime(0)
+  updated_at              DateTime @db.DateTime(0)
+  schools                 School   @relation(fields: [school_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_expense_settings_school_id")
+
+  @@index([school_id], map: "idx_expense_settings_school_id")
+}
+
+model expenses {
+  id                 String              @id @db.Char(36)
+  school_id          String              @db.Char(36)
+  category_id        String?             @db.Char(36)
+  expense_date       DateTime            @db.Date
+  description        String              @db.VarChar(51)
+  amount             Decimal             @db.Decimal(14, 2)
+  currency           String              @db.VarChar(3)
+  paid_to            String?             @db.VarChar(10)
+  payment_method     String              @db.VarChar(12)
+  receipt_number     BigInt?
+  receipt_url        String?             @db.Text
+  notes              String?             @db.Text
+  created_by         String              @db.Char(36)
+  created_by_name    String              @db.VarChar(14)
+  created_at         DateTime            @db.DateTime(0)
+  updated_at         DateTime            @db.DateTime(0)
+  status             String              @db.VarChar(8)
+  approved_by        String?             @db.Char(36)
+  approved_by_name   String?             @db.VarChar(14)
+  approved_at        DateTime?           @db.DateTime(0)
+  rejection_reason   String?             @db.Text
+  updated_by         String?             @db.Char(36)
+  updated_by_name    String?             @db.VarChar(14)
+  deleted_at         DateTime?           @db.DateTime(0)
+  deleted_by         String?             @db.Char(36)
+  recurring_id       String?             @db.Char(36)
+  account_id         String?             @db.Char(36)
+  reconciled         Boolean
+  reconciled_at      String?             @db.Text
+  financial_accounts financial_accounts? @relation(fields: [account_id], references: [id], onUpdate: Restrict, map: "fk_expenses_account_id")
+  expense_categories expense_categories? @relation(fields: [category_id], references: [id], onUpdate: Restrict, map: "fk_expenses_category_id")
+  schools            School              @relation(fields: [school_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_expenses_school_id")
+
+  @@index([account_id], map: "idx_expenses_account_id")
+  @@index([category_id], map: "idx_expenses_category_id")
+  @@index([school_id], map: "idx_expenses_school_id")
+}
+
+model export_permissions {
+  school_id             String   @id @db.Char(36)
+  student_pdf_enabled   Boolean
+  student_excel_enabled Boolean
+  student_word_enabled  Boolean
+  student_print_enabled Boolean
+  updated_at            DateTime @db.DateTime(0)
+  updated_by            String   @db.Char(36)
+}
+
+model financial_accounts {
+  id                                                                      String                    @id @db.Char(36)
+  school_id                                                               String                    @db.Char(36)
+  name                                                                    String                    @db.VarChar(12)
+  account_type                                                            String                    @db.VarChar(12)
+  opening_balance                                                         Int
+  bank_name                                                               String?                   @db.Text
+  account_number                                                          String?                   @db.Text
+  provider                                                                String?                   @db.Text
+  notes                                                                   String?                   @db.Text
+  is_active                                                               Boolean
+  is_default                                                              Boolean
+  sort_order                                                              Int
+  created_by                                                              String?                   @db.Char(36)
+  created_at                                                              DateTime                  @db.DateTime(0)
+  updated_at                                                              DateTime                  @db.DateTime(0)
+  account_reconciliations                                                 account_reconciliations[]
+  account_transfers_account_transfers_from_account_idTofinancial_accounts account_transfers[]       @relation("account_transfers_from_account_idTofinancial_accounts")
+  account_transfers_account_transfers_to_account_idTofinancial_accounts   account_transfers[]       @relation("account_transfers_to_account_idTofinancial_accounts")
+  expenses                                                                expenses[]
+  schools                                                                 School                    @relation(fields: [school_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_financial_accounts_school_id")
+  payment_history                                                         PaymentHistory[]
+
+  @@index([school_id], map: "idx_financial_accounts_school_id")
+}
+
+model grading_scales {
+  id          String   @id @db.Char(36)
+  school_id   String   @db.Char(36)
+  letter      String   @db.VarChar(1)
+  min_percent Int
+  max_percent Decimal  @db.Decimal(14, 2)
+  gpa_points  Int
+  is_pass     Boolean
+  sort_order  Int
+  created_at  DateTime @db.DateTime(0)
+  updated_at  DateTime @db.DateTime(0)
+  schools     School   @relation(fields: [school_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_grading_scales_school_id")
+
+  @@index([school_id], map: "idx_grading_scales_school_id")
+}
+
+model invoice_job_runs {
+  id               String    @id @db.Char(36)
+  school_id        String    @db.Char(36)
+  school_name      String    @db.VarChar(18)
+  billing_period   String    @db.VarChar(7)
+  status           String    @db.VarChar(7)
+  invoices_created Int
+  invoices_skipped Int
+  error_count      Int
+  error_details    String?   @db.VarChar(108)
+  duration_ms      Int
+  trigger_source   String    @db.VarChar(15)
+  attempt          Int
+  started_at       DateTime  @db.DateTime(0)
+  finished_at      DateTime? @db.DateTime(0)
+  created_at       DateTime  @db.DateTime(0)
+  updated_at       DateTime  @db.DateTime(0)
+  schools          School    @relation(fields: [school_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_invoice_job_runs_school_id")
+
+  @@index([school_id], map: "idx_invoice_job_runs_school_id")
+}
+
+model messages {
+  id           String   @id @db.Char(36)
+  sender_id    String   @db.Char(36)
+  recipient_id String?  @db.Char(36)
+  school_id    String   @db.Char(36)
+  subject      String   @db.VarChar(17)
+  body         String   @db.VarChar(68)
+  is_broadcast Boolean
+  read_at      String?  @db.Text
+  created_at   DateTime @db.DateTime(0)
+  schools      School   @relation(fields: [school_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_messages_school_id")
+  profiles     Profile  @relation(fields: [sender_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_messages_sender_id")
+
+  @@index([school_id], map: "idx_messages_school_id")
+  @@index([sender_id], map: "idx_messages_sender_id")
+}
+
+model monthly_closings {
+  id               String   @id @db.Char(36)
+  school_id        String   @db.Char(36)
+  month            String   @db.VarChar(7)
+  status           String   @db.VarChar(4)
+  opening_balance  Decimal  @db.Decimal(14, 2)
+  closing_balance  Decimal  @db.Decimal(14, 2)
+  total_income     Decimal  @db.Decimal(14, 2)
+  total_expenses   Int
+  notes            String?  @db.Text
+  closed_by        String   @db.Char(36)
+  closed_by_name   String   @db.VarChar(14)
+  closed_at        DateTime @db.DateTime(0)
+  reopened_by      String?  @db.Char(36)
+  reopened_by_name String   @db.VarChar(13)
+  reopened_at      DateTime @db.DateTime(0)
+  created_at       DateTime @db.DateTime(0)
+  updated_at       DateTime @db.DateTime(0)
+  schools          School   @relation(fields: [school_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_monthly_closings_school_id")
+
+  @@index([school_id], map: "idx_monthly_closings_school_id")
+}
+
+model recurring_expenses {
+  id                 String              @id @db.Char(36)
+  school_id          String              @db.Char(36)
+  category_id        String?             @db.Char(36)
+  description        String?             @db.Text
+  amount             Decimal?            @db.Decimal(12, 2)
+  currency           String?             @db.Char(3)
+  frequency          String?             @db.VarChar(20)
+  start_date         DateTime?           @db.Date
+  next_run_date      DateTime?           @db.Date
+  is_active          Boolean             @default(true)
+  created_at         DateTime?           @db.DateTime(0)
+  updated_at         DateTime?           @db.DateTime(0)
+  expense_categories expense_categories? @relation(fields: [category_id], references: [id], onUpdate: Restrict, map: "fk_recurring_expenses_cat")
+  schools            School              @relation(fields: [school_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_recurring_expenses_school")
+
+  @@index([category_id], map: "recurring_exp_cat_idx")
+  @@index([school_id], map: "recurring_exp_school_idx")
+}
+
+model subjects {
+  id              String           @id @db.Char(36)
+  school_id       String           @db.Char(36)
+  name            String           @db.VarChar(15)
+  code            String?          @db.Text
+  education_level String           @db.VarChar(9)
+  is_active       Boolean
+  created_at      DateTime         @db.DateTime(0)
+  updated_at      DateTime         @db.DateTime(0)
+  class_subjects  class_subjects[]
+  exams           exams[]
+  schools         School           @relation(fields: [school_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_subjects_school_id")
+
+  @@index([school_id], map: "idx_subjects_school_id")
+}
+
+model terms {
+  id               String         @id @db.Char(36)
+  school_id        String         @db.Char(36)
+  academic_year_id String         @db.Char(36)
+  name             String         @db.VarChar(6)
+  term_number      Int
+  start_date       DateTime       @db.Date
+  end_date         DateTime       @db.Date
+  is_active        Boolean
+  created_at       DateTime       @db.DateTime(0)
+  updated_at       DateTime       @db.DateTime(0)
+  exams            exams[]
+  academic_years   academic_years @relation(fields: [academic_year_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_terms_academic_year_id")
+  schools          School         @relation(fields: [school_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_terms_school_id")
+
+  @@index([academic_year_id], map: "idx_terms_academic_year_id")
+  @@index([school_id], map: "idx_terms_school_id")
+}

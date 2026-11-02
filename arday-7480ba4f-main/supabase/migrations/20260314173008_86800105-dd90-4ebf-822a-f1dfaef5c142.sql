@@ -1,0 +1,1 @@
+DELETE FROM invoices WHERE title = 'TEST - UI Trigger Verify'; UPDATE invoice_counters SET next_number = 96 WHERE school_id = (SELECT id FROM schools WHERE name = 'MIFTAH ACADEMY' LIMIT 1);

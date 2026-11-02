@@ -1,0 +1,1 @@
+ALTER TABLE public.schools ADD COLUMN monthly_fee numeric DEFAULT NULL;

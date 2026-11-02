@@ -1,0 +1,22 @@
+# Ignore root-level junk
+*.png
+*.jpg
+*.jpeg
+*.zip
+*.bat
+*.php
+*.sql
+*.log
+node_modules/
+dist/
+
+# Keep the project folder
+!arday-7480ba4f-main/
+!arday-7480ba4f-main/**
+
+# Inside project: ignore deps/builds
+arday-7480ba4f-main/node_modules/
+arday-7480ba4f-main/dist/
+arday-7480ba4f-main/server/node_modules/
+arday-7480ba4f-main/server/dist/
+arday-7480ba4f-main/*.log
